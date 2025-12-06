@@ -36,3 +36,12 @@ export const login = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const UserList = async (req, res) => {
+  try {
+    const userList = await User.find();
+    res.json(userList);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
