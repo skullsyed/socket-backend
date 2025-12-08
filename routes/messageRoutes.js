@@ -3,7 +3,7 @@ import { saveMessage, getMessages } from "../controllers/messageController.js";
 
 const router = express.Router();
 
-router.post("/", saveMessage);
-router.get("/", getMessages);
+router.post("/createMessage", saveMessage);
+router.get("/getAllMessage", getMessages);
 
 export default router;

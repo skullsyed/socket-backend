@@ -25,23 +25,38 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "Invalid email" });
-
+    console.log("Password received:", req.body.password);
+    console.log("Password (json):", JSON.stringify(req.body.password));
+    console.log("Stored Hash:", user.password);
     const match = await bcrypt.compare(password, user.password);
+    console.log("match ", match);
     if (!match) return res.status(400).json({ error: "Wrong password" });
+    console.log("match ", match);
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
+    const token = jwt.sign({ id: user._id }, process.env.JWT_token, {
+      expiresIn: "1d",
+    });
+    console.log("Token ", token);
     res.json({ token, user });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-export const UserList = async (req, res) => {
+export const userList = async (req, res) => {
   try {
     const userList = await User.find();
-    res.json(userList);
+    res.status(200).json({
+      status: "success",
+      message: "Users fetched successfully",
+      data: userList,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({
+      status: "error",
+      message: "Server error",
+      data: [],
+    });
   }
 };
