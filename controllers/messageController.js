@@ -42,3 +42,80 @@ export const getMessages = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
+
+export const getUnreadCount = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    console.log("Fetching unread count for userId:", userId);
+
+    // Get unread messages where the user is the receiver
+    const unreadMessages = await Message.find({
+      receiverId: userId,
+      isRead: false,
+    }).maxTimeMS(5000);
+
+    // Group by sender to get unread count per conversation
+    const unreadBySender = {};
+    let totalUnread = 0;
+
+    unreadMessages.forEach((msg) => {
+      if (!unreadBySender[msg.senderId]) {
+        unreadBySender[msg.senderId] = 0;
+      }
+      unreadBySender[msg.senderId]++;
+      totalUnread++;
+    });
+
+    console.log(`Found ${totalUnread} unread messages`);
+
+    res.json({
+      totalUnread,
+      unreadBySender,
+    });
+  } catch (error) {
+    console.error("Error fetching unread count:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+// Optional: Add function to mark messages as read
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const { userId, senderId } = req.body;
+
+    if (!userId || !senderId) {
+      return res
+        .status(400)
+        .json({ error: "userId and senderId are required" });
+    }
+
+    console.log("Marking messages as read:", { userId, senderId });
+
+    // Mark all messages from senderId to userId as read
+    const result = await Message.updateMany(
+      {
+        receiverId: userId,
+        senderId: senderId,
+        isRead: false,
+      },
+      {
+        $set: { isRead: true },
+      }
+    );
+
+    console.log(`Marked ${result.modifiedCount} messages as read`);
+
+    res.json({
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
