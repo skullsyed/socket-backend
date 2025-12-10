@@ -40,6 +40,8 @@ const corsOptions = {
     "Accept",
     "Origin",
     "User-Agent",
+    "Pragma",
+    "Expires",
     "DNT",
     "X-CustomHeader",
   ],
