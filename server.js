@@ -51,7 +51,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://socket-frontend-main.netlify.app",
+      "hhttps://socket-frontend-main.netlify.app",
       "*",
     ],
     methods: ["GET", "POST"],
