@@ -83,24 +83,24 @@ export const getUnreadCount = async (req, res) => {
   }
 };
 
-// Optional: Add function to mark messages as read
+// Fixed function to match frontend expectations
 export const markMessagesAsRead = async (req, res) => {
   try {
-    const { userId, senderId } = req.body;
+    const { receiverId, senderId } = req.body;
 
-    if (!userId || !senderId) {
+    if (!receiverId || !senderId) {
       return res
         .status(400)
-        .json({ error: "userId and senderId are required" });
+        .json({ error: "receiverId and senderId are required" });
     }
 
-    console.log("Marking messages as read:", { userId, senderId });
+    console.log("Marking messages as read:", { receiverId, senderId });
 
-    // Mark all messages from senderId to userId as read
+    // Mark all messages from senderId to receiverId as read
     const result = await Message.updateMany(
       {
-        receiverId: userId,
-        senderId: senderId,
+        receiverId: receiverId, // The current user (who is reading)
+        senderId: senderId, // The other user (who sent the messages)
         isRead: false,
       },
       {
@@ -111,6 +111,7 @@ export const markMessagesAsRead = async (req, res) => {
     console.log(`Marked ${result.modifiedCount} messages as read`);
 
     res.json({
+      success: true,
       message: "Messages marked as read",
       modifiedCount: result.modifiedCount,
     });
