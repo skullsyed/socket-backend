@@ -16,15 +16,107 @@ export const getMessages = async (req, res) => {
   try {
     const { senderId, receiverId } = req.query;
 
-    const messages = await Message.find({
-      $or: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId },
-      ],
-    }).sort({ timestamp: 1 });
+    console.log("Fetching messages...", { senderId, receiverId });
 
+    let messages;
+
+    // If both senderId and receiverId are provided, get conversation between them
+    if (senderId && receiverId) {
+      messages = await Message.find({
+        $or: [
+          { senderId, receiverId },
+          { senderId: receiverId, receiverId: senderId },
+        ],
+      })
+        .sort({ timestamp: 1 })
+        .maxTimeMS(5000); // 5 second timeout
+    } else {
+      // If no parameters provided, get all messages
+      messages = await Message.find({}).sort({ timestamp: 1 }).maxTimeMS(5000);
+    }
+
+    console.log(`Found ${messages.length} messages`);
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+export const getUnreadCount = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    console.log("Fetching unread count for userId:", userId);
+
+    // Get unread messages where the user is the receiver
+    const unreadMessages = await Message.find({
+      receiverId: userId,
+      isRead: false,
+    }).maxTimeMS(5000);
+
+    // Group by sender to get unread count per conversation
+    const unreadBySender = {};
+    let totalUnread = 0;
+
+    unreadMessages.forEach((msg) => {
+      if (!unreadBySender[msg.senderId]) {
+        unreadBySender[msg.senderId] = 0;
+      }
+      unreadBySender[msg.senderId]++;
+      totalUnread++;
+    });
+
+    console.log(`Found ${totalUnread} unread messages`);
+
+    res.json({
+      totalUnread,
+      unreadBySender,
+    });
+  } catch (error) {
+    console.error("Error fetching unread count:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+// Fixed function to match frontend expectations
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const { receiverId, senderId } = req.body;
+
+    if (!receiverId || !senderId) {
+      return res
+        .status(400)
+        .json({ error: "receiverId and senderId are required" });
+    }
+
+    console.log("Marking messages as read:", { receiverId, senderId });
+
+    // Mark all messages from senderId to receiverId as read
+    const result = await Message.updateMany(
+      {
+        receiverId: receiverId, // The current user (who is reading)
+        senderId: senderId, // The other user (who sent the messages)
+        isRead: false,
+      },
+      {
+        $set: { isRead: true },
+      }
+    );
+
+    console.log(`Marked ${result.modifiedCount} messages as read`);
+
+    res.json({
+      success: true,
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
   }
 };

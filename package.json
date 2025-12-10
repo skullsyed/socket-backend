@@ -18,5 +18,16 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
-  }
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skullsyed/socket-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/skullsyed/socket-backend/issues"
+  },
+  "homepage": "https://github.com/skullsyed/socket-backend#readme"
 }
