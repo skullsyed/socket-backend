@@ -88,7 +88,8 @@ export const verifyToken = async (req, res) => {
 
 export const userList = async (req, res) => {
   try {
-    const userList = await User.find();
+    // Exclude password field from the results
+    const userList = await User.find().select("-password");
     res.status(200).json({
       status: "success",
       message: "Users fetched successfully",
