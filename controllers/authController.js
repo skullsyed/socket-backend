@@ -39,6 +39,11 @@ export const login = async (req, res) => {
     if (!match) return res.status(400).json({ error: "Wrong password" });
     console.log("match ", match);
 
+    // Check if JWT_token is configured
+    if (!process.env.JWT_token) {
+      console.error("JWT_token environment variable is not set!");
+      return res.status(500).json({ error: "Server configuration error" });
+    }
     const token = jwt.sign({ id: user._id }, process.env.JWT_token, {
       expiresIn: "1d",
     });
