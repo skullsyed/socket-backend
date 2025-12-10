@@ -12,6 +12,7 @@ connectDB();
 
 const app = express();
 const httpServer = createServer(app);
+
 // CORS configuration - MUST be before routes
 const corsOptions = {
   origin: function (origin, callback) {
@@ -52,8 +53,26 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
+
+// Handle preflight requests for all routes
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type,Authorization,Cache-Control,X-Requested-With,Accept,Origin,User-Agent,Pragma,Expires,DNT,X-CustomHeader"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Max-Age", "86400");
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Add a test route to verify server is working
 app.get("/", (req, res) => {
