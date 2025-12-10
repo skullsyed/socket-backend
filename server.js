@@ -12,15 +12,25 @@ connectDB();
 
 const app = express();
 const httpServer = createServer(app);
-
 // CORS configuration - MUST be before routes
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://socket-frontend-main.netlify.app",
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://socket-frontend-main.netlify.app",
+    ];
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Temporarily allow all for debugging
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
   allowedHeaders: [
     "Content-Type",
@@ -28,9 +38,15 @@ const corsOptions = {
     "Cache-Control",
     "X-Requested-With",
     "Accept",
+    "Origin",
+    "User-Agent",
+    "DNT",
+    "X-CustomHeader",
   ],
   exposedHeaders: ["Content-Length", "X-Request-Id"],
-  maxAge: 86400, // 24 hours
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
@@ -58,8 +74,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "hhttps://socket-frontend-main.netlify.app",
-      "*",
+      "https://socket-frontend-main.netlify.app",
     ],
     methods: ["GET", "POST"],
     credentials: true,
