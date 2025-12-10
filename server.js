@@ -18,12 +18,19 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://socket-frontend-main.netlify.app", // Add your Netlify URL
-    "*", // Remove this in production for better security
+    "https://socket-frontend-main.netlify.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cache-Control",
+    "X-Requested-With",
+    "Accept",
+  ],
+  exposedHeaders: ["Content-Length", "X-Request-Id"],
+  maxAge: 86400, // 24 hours
 };
 
 app.use(cors(corsOptions));
